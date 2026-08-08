@@ -46,7 +46,8 @@ jobs:
           fi
 
       - name: Scan repository history
-        run: "$RUNNER_TEMP/gitleaks" git --redact --verbose .
+        run: |
+          "$RUNNER_TEMP/gitleaks" git --redact --verbose .
 
   quality:
     name: Quality

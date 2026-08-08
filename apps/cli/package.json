@@ -1,0 +1,24 @@
+{
+  "name": "@nyro-sunat/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CLI local de Agent Nyro SUNAT.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "agent-nyro-sunat": "./dist/main.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b --pretty false",
+    "start": "node dist/main.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nyro-sunat/core": "workspace:*",
+    "@nyro-sunat/security": "workspace:*",
+    "@nyro-sunat/sunat": "workspace:*"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@nyro-sunat/security",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Perfiles y resolución segura de credenciales para Agent Nyro SUNAT.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b --pretty false",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nyro-sunat/core": "workspace:*",
+    "@nyro-sunat/sunat": "workspace:*"
+  }
+}

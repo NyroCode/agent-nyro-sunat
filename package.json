@@ -1,0 +1,29 @@
+{
+  "name": "agent-nyro-sunat",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Agente open source y local-first para integraciones seguras con SUNAT.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=11.20.0"
+  },
+  "scripts": {
+    "build": "tsc -b --pretty false",
+    "check": "biome format . && biome lint . && tsc -b --pretty false && tsc -p tsconfig.tests.json --pretty false && vitest run",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b --pretty false && tsc -p tsconfig.tests.json --pretty false"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.7",
+    "@types/node": "24.13.3",
+    "typescript": "7.0.2",
+    "vitest": "4.1.10"
+  }
+}

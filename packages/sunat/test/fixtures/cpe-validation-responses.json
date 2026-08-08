@@ -1,0 +1,42 @@
+{
+  "accepted": {
+    "success": true,
+    "message": "synthetic accepted response",
+    "data": {
+      "estadoCp": 1,
+      "estadoRuc": "00",
+      "condDomiRuc": "00",
+      "Observaciones": []
+    }
+  },
+  "notFound": {
+    "success": true,
+    "message": "synthetic not-found response",
+    "data": {
+      "estadoCp": 0,
+      "estadoRuc": "00",
+      "condDomiRuc": "00",
+      "Observaciones": []
+    }
+  },
+  "annulled": {
+    "success": true,
+    "message": "synthetic annulled response",
+    "data": {
+      "estadoCp": 2,
+      "estadoRuc": "00",
+      "condDomiRuc": "00",
+      "Observaciones": []
+    }
+  },
+  "notHabido": {
+    "success": true,
+    "message": "synthetic not-habido response",
+    "data": {
+      "estadoCp": 1,
+      "estadoRuc": "00",
+      "condDomiRuc": "12",
+      "Observaciones": []
+    }
+  }
+}

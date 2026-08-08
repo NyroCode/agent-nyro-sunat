@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "isolatedDeclarations": false,
+    "noEmit": true,
+    "types": ["node"],
+    "paths": {
+      "@nyro-sunat/core": ["./packages/core/src/index.ts"],
+      "@nyro-sunat/security": ["./packages/security/src/index.ts"],
+      "@nyro-sunat/sunat": ["./packages/sunat/src/index.ts"],
+      "@nyro-sunat/testing": ["./packages/testing/src/index.ts"]
+    }
+  },
+  "include": ["apps/*/test/**/*.ts", "packages/*/test/**/*.ts"]
+}

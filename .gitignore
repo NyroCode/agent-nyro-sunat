@@ -1,0 +1,47 @@
+# Dependencias y builds
+node_modules/
+dist/
+build/
+coverage/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+*.secrets
+*.key
+*.pem
+*.pfx
+*.p12
+*.jks
+*.keystore
+*.crt
+*.cer
+*.der
+*.csr
+*.mobileprovision
+
+# Artefactos fiscales y capturas locales
+artifacts/
+fixtures/private/
+recordings/private/
+*.xml.signed
+*.signed.xml
+*.cdr.zip
+
+# Editores y sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Logs y temporales
+*.log
+tmp/
+temp/

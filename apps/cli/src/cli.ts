@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { DomainError } from "@nyro-sunat/core";
-import type { CliServices, VoucherCommandWithoutRequestId } from "./services.js";
+import type { CliServices, RucLookupProvider, VoucherCommandWithoutRequestId } from "./services.js";
 
 export interface CliIo {
   writeOut(message: string): void;
@@ -29,6 +29,10 @@ export async function runCli(
         return await verifyProfile(commandArguments, services, io);
       case "validar-comprobante":
         return await validateVoucher(commandArguments, services, io);
+      case "consultar-ruc":
+        return await lookupTaxpayer(commandArguments, services, io);
+      case "padron-ruc-actualizar":
+        return await updateRucRegistry(commandArguments, services, io);
       default:
         io.writeError(`Comando desconocido: ${command}`);
         return 2;
@@ -42,6 +46,73 @@ export async function runCli(
     writeFailure(io, jsonOutput, "CLI_ERROR", "No se pudo procesar el comando solicitado.");
     return 2;
   }
+}
+
+async function lookupTaxpayer(
+  arguments_: readonly string[],
+  services: CliServices,
+  io: CliIo,
+): Promise<number> {
+  const parsed = parseArgs({
+    args: [...arguments_],
+    strict: true,
+    options: {
+      ruc: { type: "string" },
+      provider: { type: "string", default: "auto" },
+      credenciales: { type: "string", default: "secret-service" },
+      json: { type: "boolean", default: false },
+    },
+  });
+  const result = await services.lookupTaxpayer({
+    ruc: requireOption(parsed.values.ruc, "ruc"),
+    provider: requireRucProvider(parsed.values.provider),
+    credentialSource: requireCredentialSource(parsed.values.credenciales),
+  });
+
+  if (parsed.values.json) {
+    io.writeOut(JSON.stringify(result));
+    return 0;
+  }
+  io.writeOut(`Encontrado: ${String(result.data.found)}`);
+  if (result.data.found) {
+    io.writeOut(`Razón social: ${result.data.taxpayer.legalName ?? "No disponible"}`);
+    io.writeOut(`Estado: ${result.data.taxpayer.status}`);
+    io.writeOut(`Condición: ${result.data.taxpayer.condition}`);
+  }
+  io.writeOut(
+    `Fuente: ${result.provenance.source} (oficial: ${String(result.provenance.isOfficial)})`,
+  );
+  if (result.provenance.datasetVersion !== undefined) {
+    io.writeOut(`Padrón: ${result.provenance.datasetVersion}`);
+  }
+  io.writeOut(`Solicitud: ${result.requestId}`);
+  for (const warning of result.warnings) {
+    io.writeOut(`Advertencia [${warning.code}]: ${warning.message}`);
+  }
+  return 0;
+}
+
+async function updateRucRegistry(
+  arguments_: readonly string[],
+  services: CliServices,
+  io: CliIo,
+): Promise<number> {
+  const parsed = parseArgs({
+    args: [...arguments_],
+    strict: true,
+    options: { json: { type: "boolean", default: false } },
+  });
+  const result = await services.updateRucRegistry();
+  if (parsed.values.json) {
+    io.writeOut(JSON.stringify(result));
+  } else {
+    io.writeOut(`Padrón SUNAT actualizado: ${result.datasetVersion}`);
+    io.writeOut(`Registros importados: ${result.rowCount}`);
+    io.writeOut(`Filas omitidas: ${result.skippedRowCount}`);
+    io.writeOut(`Base local: ${result.databasePath}`);
+    io.writeOut(`SHA-256 del archivo: ${result.archiveSha256}`);
+  }
+  return 0;
 }
 
 async function verifyProfile(
@@ -164,6 +235,13 @@ function requireCredentialSource(value: string | undefined): "secret-service" | 
   return value;
 }
 
+function requireRucProvider(value: string | undefined): RucLookupProvider {
+  if (value === "auto" || value === "apiperu" || value === "decolecta" || value === "local") {
+    return value;
+  }
+  throw new TypeError("Invalid RUC provider");
+}
+
 function writeFailure(
   io: CliIo,
   json: boolean,
@@ -195,6 +273,8 @@ Comandos:
   perfil-configurar     Guarda configuración no secreta de un perfil
   perfil-verificar      Comprueba OAuth y descarta el token sin consultar CPE
   validar-comprobante   Consulta la validez de un CPE
+  consultar-ruc         Consulta RUC con fallback API Perú, Decolecta y padrón local
+  padron-ruc-actualizar Descarga e importa el padrón reducido oficial de SUNAT
 
 Use --help en la documentación del repositorio para ejemplos. Las credenciales y certificados
 no se aceptan como argumentos de esta CLI.`;

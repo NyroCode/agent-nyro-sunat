@@ -13,7 +13,7 @@ export interface CommandRunner {
   run(command: string, arguments_: readonly string[]): Promise<CommandResult>;
 }
 
-class ExecFileCommandRunner implements CommandRunner {
+export class ExecFileCommandRunner implements CommandRunner {
   public async run(command: string, arguments_: readonly string[]): Promise<CommandResult> {
     const result = await executeFile(command, arguments_, {
       encoding: "utf8",

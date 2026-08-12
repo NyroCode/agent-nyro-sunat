@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@nyro-sunat/core": "workspace:*",
+    "@nyro-sunat/providers": "workspace:*",
     "@nyro-sunat/security": "workspace:*",
     "@nyro-sunat/sunat": "workspace:*"
   }

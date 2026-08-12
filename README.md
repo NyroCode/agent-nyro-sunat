@@ -23,6 +23,8 @@ Implementado hasta ahora:
 - autenticación OAuth y adaptador de consulta integrada CPE según el contrato oficial;
 - transporte HTTP con allowlist, timeout, límite de respuesta y redirects bloqueados;
 - perfiles locales sin secretos y CLI para validación CPE;
+- consulta RUC con API Perú, Decolecta y fallback al Padrón Reducido oficial importado en SQLite;
+- actualización atómica y acotada del padrón, con hash, versión, procedencia y advertencia de antigüedad;
 - perfiles restringidos a `cpe-validation-read-only` y diagnóstico OAuth que descarta el token sin consultar comprobantes.
 
 La CLI ya conectó el flujo completo contra una cuenta y un comprobante autorizados. La evidencia compartida se limita a estado normalizado, procedencia y `request_id`; no se conservan RUC, serie/número, respuestas crudas ni secretos en el repositorio. Repetir esa validación requiere autorización propia y credenciales guardadas fuera de Git.
@@ -99,7 +101,32 @@ pnpm install
 pnpm check
 ```
 
-`pnpm check` comprueba formato, lint, tipos y pruebas. La estructura de aplicaciones y paquetes se añadirá progresivamente siguiendo los límites de arquitectura ya documentados.
+`pnpm check` comprueba formato, lint, tipos y pruebas.
+
+Para probar proveedores RUC desde `.env.local`, define solo las credenciales que usarás:
+
+```dotenv
+APIPERU_TOKEN=
+DECOLECTA_TOKEN=
+SUNAT_CLIENT_ID=
+SUNAT_CLIENT_SECRET=
+```
+
+Luego compila, actualiza el padrón y consulta con fallback:
+
+```bash
+pnpm build
+node apps/cli/dist/main.js padron-ruc-actualizar
+node --env-file=.env.local apps/cli/dist/main.js consultar-ruc \
+  --ruc 20000000000 \
+  --provider auto \
+  --credenciales environment \
+  --json
+```
+
+El RUC del ejemplo es sintético. Para aislar resultados también puedes usar `--provider apiperu`,
+`--provider decolecta` o `--provider local`. En uso normal se recomienda Secret Service; `.env.local`
+queda reservado para desarrollo y está ignorado por Git.
 
 Antes de contribuir, instala también el hook local de secretos:
 

@@ -19,6 +19,7 @@ La primera entrega (`v0.1`) será de solo lectura:
 Implementado hasta ahora:
 
 - core puro con tipos, errores, puertos y casos de uso read-only;
+- contratos públicos `camelCase` con JSON Schema 2020-12 y versión explícita para CLI/MCP;
 - adapters y fixtures sintéticos para pruebas sin red;
 - autenticación OAuth y adaptador de consulta integrada CPE según el contrato oficial;
 - transporte HTTP con allowlist, timeout, límite de respuesta y redirects bloqueados;
@@ -27,7 +28,7 @@ Implementado hasta ahora:
 - actualización atómica y acotada del padrón, con hash, versión, procedencia y advertencia de antigüedad;
 - perfiles restringidos a `cpe-validation-read-only` y diagnóstico OAuth que descarta el token sin consultar comprobantes.
 
-La CLI ya conectó el flujo completo contra una cuenta y un comprobante autorizados. La evidencia compartida se limita a estado normalizado, procedencia y `request_id`; no se conservan RUC, serie/número, respuestas crudas ni secretos en el repositorio. Repetir esa validación requiere autorización propia y credenciales guardadas fuera de Git.
+La CLI ya conectó el flujo completo contra una cuenta y un comprobante autorizados. La evidencia compartida se limita a estado normalizado, procedencia y `requestId`; no se conservan RUC, serie/número, respuestas crudas ni secretos en el repositorio. Repetir esa validación requiere autorización propia y credenciales guardadas fuera de Git.
 
 La preparación de UBL, emisión CPE, GRE y SIRE se incorporará por fases, detrás de validaciones, ambientes beta y aprobación explícita. La consulta de DNI/RENIEC, el envío del Formulario 621 y la automatización por navegador no pertenecen a `v1`.
 
@@ -125,8 +126,10 @@ node --env-file=.env.local apps/cli/dist/main.js consultar-ruc \
 ```
 
 El RUC del ejemplo es sintético. Para aislar resultados también puedes usar `--provider apiperu`,
-`--provider decolecta` o `--provider local`. En uso normal se recomienda Secret Service; `.env.local`
-queda reservado para desarrollo y está ignorado por Git.
+`--provider decolecta` o `--provider local`. `auto` omite proveedores sin token configurado, pero se
+detiene si un proveedor configurado rechaza la autenticación. En uso normal se recomienda Secret
+Service; `.env.local` es una opción soportada para desarrollo local, debe permanecer ignorado por Git
+y tener permisos restrictivos.
 
 Antes de contribuir, instala también el hook local de secretos:
 

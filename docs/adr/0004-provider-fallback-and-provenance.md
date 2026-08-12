@@ -15,13 +15,19 @@ fallar o aplicar rate limiting sin que eso convierta el dato en inexistente.
 
 El core define puertos estrictos y una cadena de fallback sin red, filesystem, entorno ni SDKs. La
 cadena devuelve el primer resultado concluyente, incluido `found: false`, y conserva intacta la
-procedencia aportada por el adapter: `source`, `fetched_at`, `is_official` y, cuando corresponda,
-`dataset_version`.
+procedencia aportada por el adapter: `source`, `fetchedAt`, `isOfficial` y, cuando corresponda,
+`datasetVersion`.
 
 La política predeterminada sólo continúa ante errores transitorios tipados:
 `ProviderUnavailableError` y `RateLimitError`. Autenticación, validación y drift de contrato detienen la
 cadena para no ocultar una mala configuración o interpretar una respuesta desconocida. El punto de
 composición puede inyectar otra política explícita cuando exista una justificación documentada.
+
+El modo `auto` resuelve la disponibilidad de credenciales en la capa de composición antes de crear la
+cadena: un proveedor no configurado se omite, pero un proveedor configurado que responde `401/403`
+produce `AuthenticationError` y detiene la consulta. Elegir un proveedor explícitamente también falla
+si su credencial no está configurada. De este modo, conveniencia local y autenticación rechazada no
+comparten la misma semántica de fallback.
 
 Los adapters concretos de red y padrón local viven fuera del core. Las credenciales se resuelven en el
 borde y nunca forman parte de los inputs del puerto.

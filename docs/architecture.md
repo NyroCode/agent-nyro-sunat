@@ -40,7 +40,7 @@ Una tarea asíncrona devuelve un handle persistible. Ninguna operación depende 
 
 ### Evidencia y procedencia
 
-Una respuesta de consulta incluye `source`, `fetched_at`, `is_official` y, cuando aplique, vigencia del dato. Una mutación conserva solicitud normalizada, hash, aprobación, resultado y artefactos sanitizados.
+Una respuesta de consulta incluye `source`, `fetchedAt`, `isOfficial` y, cuando aplique, vigencia del dato. Una mutación conserva solicitud normalizada, hash, aprobación, resultado y artefactos sanitizados.
 
 ## 4. Mapa de componentes
 
@@ -107,11 +107,12 @@ apps/
   mcp-http/             servidor MCP remoto
 packages/
   core/                 dominio, casos de uso, puertos, errores
+  contracts/            DTO públicos y JSON Schema para CLI/MCP
   sunat/                adaptadores oficiales REST/SOAP/SIRE/GRE
   providers/            padrón local y proveedores alternativos
   document-engines/     adaptadores UBL, firma y CDR
   security/             secretos, aprobación, auditoría, allowlists
-  mcp/                  contratos y traducción MCP compartida
+  mcp/                  registro de tools y traducción del transporte MCP
   testing/              builders, fixtures sintéticos y contract tests
 docs/
   adr/
@@ -184,7 +185,16 @@ Cada adaptador externo tendrá contract tests comunes. Cambiar de proveedor no d
 | Consultar padrón | `consultar_padron` | Solo lectura | pertenencia, versión y procedencia |
 | Consultar tipo de cambio | `tipo_cambio` | Solo lectura | compra/venta, fecha y fuente |
 
-Los nombres se mantienen en español y `snake_case`. Las salidas tendrán esquemas versionados y una envoltura consistente: `data`, `provenance`, `warnings`, `request_id`.
+Los nombres de tools se mantienen en español y `snake_case`. Los campos de sus inputs y outputs usan
+`camelCase`, coherente con TypeScript y con los campos del protocolo MCP. Las salidas tienen JSON
+Schema 2020-12 versionado y una envoltura consistente: `schemaVersion`, `data`, `provenance`,
+`warnings`, `requestId`.
+
+`packages/contracts` es el borde público independiente del transporte. CLI `--json` serializa ese DTO
+y MCP lo devolverá como `structuredContent`; además incluirá la misma representación JSON en un bloque
+`content` de texto para compatibilidad. Si una tool declara `outputSchema`, ninguna respuesta exitosa
+puede apartarse de él. Los errores de protocolo se mantienen separados de los errores tipados de
+ejecución de una tool.
 
 ### Capacidades posteriores
 
@@ -290,7 +300,8 @@ Una escritura produce una cadena auditable: quién solicitó, qué digest aprob�
 
 - confirmar con mantenedores la posibilidad de colaborar con el motor TypeScript existente;
 - seleccionar librería decimal, validador XML y estrategia de firma tras pruebas;
-- fijar versión estable del SDK MCP y ventana de compatibilidad heredada;
+- fijar inicialmente el protocolo estable `2025-11-25` y una versión exacta del SDK MCP; reevaluar el
+  release candidate `2026-07-28` cuando alcance estado final;
 - confirmar licencias/redistribución de XSD, catálogos y padrones oficiales;
 - decidir formato del almacén de auditoría local y su mecanismo antimanipulación;
 - verificar qué operaciones oficiales ofrecen idempotencia o consulta suficiente para reconciliar;

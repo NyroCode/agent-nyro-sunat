@@ -4,6 +4,9 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: {
+      "@nyro-sunat/contracts": fileURLToPath(
+        new URL("./packages/contracts/src/index.ts", import.meta.url),
+      ),
       "@nyro-sunat/core": fileURLToPath(new URL("./packages/core/src/index.ts", import.meta.url)),
       "@nyro-sunat/providers": fileURLToPath(
         new URL("./packages/providers/src/index.ts", import.meta.url),

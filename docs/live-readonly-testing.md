@@ -12,7 +12,7 @@ Esto reduce el riesgo de una acción fiscal accidental, pero no sustituye la aut
 
 - Obtén autorización del responsable del RUC para crear y usar una aplicación API exclusiva de pruebas.
 - Crea una aplicación separada, por ejemplo `Agent Nyro SUNAT OSS Read-only Test`. No reutilices credenciales de ERP, facturación, SIRE u otra integración.
-- Guarda `client_id` y `client_secret` únicamente en el Secret Service local. No compartas Clave SOL, token, secretos, capturas o archivos de credenciales por chat, Notion, Linear, GitHub o logs.
+- Guarda `client_id` y `client_secret` fuera de Git. Secret Service es el mecanismo recomendado para uso local habitual; `.env.local` está soportado para desarrollo read-only controlado. No compartas Clave SOL, token, secretos, capturas o archivos de credenciales por chat, Notion, Linear, GitHub o logs.
 - Selecciona un CPE ya existente, emitido o recibido legítimamente por la empresa, cuyo estado esperado pueda comprobar el responsable. No inventes una serie/número ni uses comprobantes de terceros al azar.
 - Ejecuta primero toda la suite automatizada sin red.
 
@@ -35,9 +35,11 @@ node apps/cli/dist/main.js perfil-configurar \
   --credenciales secret-service
 ```
 
-El archivo de perfiles sólo conserva RUC, fuente de credenciales y la capacidad de solo lectura.
+El archivo de perfiles sólo conserva RUC, fuente de credenciales y la capacidad de solo lectura. Para
+desarrollo con variables de entorno usa `--credenciales environment`; el secreto tampoco se guarda en
+el perfil.
 
-### 3. Credenciales en Secret Service
+### 3A. Secret Service (recomendado)
 
 Ejecuta cada comando y escribe el valor cuando `secret-tool` lo solicite por la entrada estándar:
 
@@ -49,6 +51,24 @@ secret-tool store --label="Nyro SUNAT client secret" \
   application agent-nyro-sunat profile empresa_prueba field client-secret
 ```
 
+### 3B. `.env.local` (desarrollo local)
+
+Copia las claves vacías de `.env.example` a un archivo `.env.local` ignorado por Git, asigna permisos
+restrictivos y completa los valores directamente en tu equipo:
+
+```bash
+chmod 600 .env.local
+```
+
+```dotenv
+SUNAT_CLIENT_ID=
+SUNAT_CLIENT_SECRET=
+```
+
+No ejecutes `git add -f`, no adjuntes el archivo a issues y no lo uses para un MCP remoto. Node no lo
+carga implícitamente: el comando debe usar `--env-file=.env.local` o recibir las variables desde el
+proceso supervisor.
+
 ### 4. Diagnóstico OAuth sin consulta tributaria
 
 ```bash
@@ -57,7 +77,16 @@ node apps/cli/dist/main.js perfil-verificar \
   --json
 ```
 
-Este comando solicita el token, comprueba la autenticación, lo descarta y devuelve únicamente perfil, capacidad, fecha y `request_id`. No consulta ningún comprobante y nunca imprime el token.
+Si el perfil usa `environment`, ejecuta en su lugar:
+
+```bash
+node --env-file=.env.local apps/cli/dist/main.js perfil-verificar \
+  --profile empresa_prueba \
+  --json
+```
+
+Este comando solicita el token, comprueba la autenticación, lo descarta y devuelve únicamente perfil,
+capacidad, fecha y `requestId`. No consulta ningún comprobante y nunca imprime el token.
 
 ### 5. Una consulta conocida
 
@@ -76,13 +105,16 @@ node apps/cli/dist/main.js validar-comprobante \
   --json
 ```
 
+Agrega `--env-file=.env.local` después de `node` cuando el perfil use `environment`.
+
 Realiza primero una sola consulta y compara el estado normalizado con el estado esperado. Una prueba negativa sólo debe hacerse después, modificando un dato controlado y sin introducir información de terceros.
 
 ### 6. Cierre
 
-- Conserva únicamente evidencia sanitizada: `request_id`, fecha, fuente y estado normalizado.
+- Conserva únicamente evidencia sanitizada: `requestId`, fecha, fuente y estado normalizado.
 - No guardes headers, tokens, secretos, Clave SOL, cuerpos completos ni datos personales.
-- Al terminar, rota o elimina la aplicación API de prueba en SOL si ya no será utilizada.
+- Al terminar, rota o elimina la aplicación API de prueba en SOL si ya no será utilizada. Si conservas
+  `.env.local`, mantenlo con permisos `0600`; elimínalo cuando deje de ser necesario.
 
 ## Condiciones de aborto
 

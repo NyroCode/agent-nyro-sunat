@@ -17,6 +17,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@nyro-sunat/contracts": "workspace:*",
     "@nyro-sunat/core": "workspace:*",
     "@nyro-sunat/providers": "workspace:*",
     "@nyro-sunat/security": "workspace:*",

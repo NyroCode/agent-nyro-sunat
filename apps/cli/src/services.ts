@@ -4,8 +4,6 @@ import {
   AuthenticationError,
   FallbackTaxpayerLookup,
   LookupTaxpayerUseCase,
-  ProviderUnavailableError,
-  RateLimitError,
   ValidateVoucherUseCase,
   createIsoInstant,
   createRequestId,
@@ -26,6 +24,7 @@ import {
   createProfile,
   defaultProfilePath,
   type CredentialSource,
+  type ConfigurableApiTokenProvider,
   type ProfileCapability,
   type SunatProfile,
 } from "@nyro-sunat/security";
@@ -35,7 +34,6 @@ import {
   LocalRucRegistryAdapter,
   RucRegistryUpdater,
   defaultRucRegistryPath,
-  type ApiTokenProvider,
   type RucRegistryUpdateResult,
 } from "@nyro-sunat/providers";
 import {
@@ -173,29 +171,10 @@ export class LocalCliServices implements CliServices {
                   configuration.credentialSource,
                 ),
               })
-            : new FallbackTaxpayerLookup(
-                [
-                  new ApiPeruTaxpayerAdapter({
-                    tokenProvider: this.#createApiTokenProvider(
-                      "apiperu",
-                      configuration.credentialSource,
-                    ),
-                  }),
-                  new DecolectaTaxpayerAdapter({
-                    tokenProvider: this.#createApiTokenProvider(
-                      "decolecta",
-                      configuration.credentialSource,
-                    ),
-                  }),
-                  local,
-                ],
-                {
-                  shouldFallback: (error) =>
-                    error instanceof AuthenticationError ||
-                    error instanceof ProviderUnavailableError ||
-                    error instanceof RateLimitError,
-                },
-              );
+            : new FallbackTaxpayerLookup([
+                ...(await this.#createConfiguredTaxpayerAdapters(configuration.credentialSource)),
+                local,
+              ]);
 
     return new LookupTaxpayerUseCase(adapter).execute({
       requestId: randomUUID(),
@@ -227,10 +206,26 @@ export class LocalCliServices implements CliServices {
     return new SecretServiceSunatCredentialProvider(profileId);
   }
 
+  async #createConfiguredTaxpayerAdapters(
+    credentialSource: CredentialSource,
+  ): Promise<Array<ApiPeruTaxpayerAdapter | DecolectaTaxpayerAdapter>> {
+    const apiPeruToken = this.#createApiTokenProvider("apiperu", credentialSource);
+    const decolectaToken = this.#createApiTokenProvider("decolecta", credentialSource);
+    const [hasApiPeru, hasDecolecta] = await Promise.all([
+      apiPeruToken.isConfigured(),
+      decolectaToken.isConfigured(),
+    ]);
+
+    return [
+      ...(hasApiPeru ? [new ApiPeruTaxpayerAdapter({ tokenProvider: apiPeruToken })] : []),
+      ...(hasDecolecta ? [new DecolectaTaxpayerAdapter({ tokenProvider: decolectaToken })] : []),
+    ];
+  }
+
   #createApiTokenProvider(
     provider: "apiperu" | "decolecta",
     credentialSource: CredentialSource,
-  ): ApiTokenProvider {
+  ): ConfigurableApiTokenProvider {
     if (credentialSource === "environment") {
       return new EnvironmentApiTokenProvider(provider, this.#environment);
     }

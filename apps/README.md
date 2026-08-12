@@ -29,6 +29,10 @@ secret-tool store --label="Nyro SUNAT client secret" \
   application agent-nyro-sunat profile empresa_demo field client-secret
 ```
 
+Para un quickstart read-only también puede configurarse el perfil con `--credenciales environment` y
+ejecutarse con `node --env-file=.env.local`. `.env.local` debe permanecer ignorado por Git y con
+permisos `0600`; Secret Service sigue siendo la opción recomendada para uso habitual.
+
 Luego consulta un comprobante:
 
 ```bash
@@ -76,6 +80,8 @@ node --env-file=.env.local apps/cli/dist/main.js consultar-ruc \
 
 La cadena `auto` intenta API Perú, Decolecta y el padrón local. Un proveedor privado siempre informa
 `isOfficial: false`; el padrón informa `datasetVersion` y una advertencia porque no es tiempo real.
+Los proveedores sin token configurado se omiten en `auto`; una credencial configurada que sea
+rechazada detiene la cadena para no ocultar una mala configuración.
 La primera actualización descarga aproximadamente 390 MB y puede tardar varios minutos según red y
 disco. Si SUNAT publica una fila con RUC inválido, se omite, se contabiliza en `skippedRowCount` y las
 consultas locales incluyen `DATASET_ROWS_SKIPPED`.

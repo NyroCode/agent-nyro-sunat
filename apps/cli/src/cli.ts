@@ -1,4 +1,5 @@
 import { parseArgs } from "node:util";
+import { toPublicQueryResult } from "@nyro-sunat/contracts";
 import { DomainError } from "@nyro-sunat/core";
 import type { CliServices, RucLookupProvider, VoucherCommandWithoutRequestId } from "./services.js";
 
@@ -70,7 +71,7 @@ async function lookupTaxpayer(
   });
 
   if (parsed.values.json) {
-    io.writeOut(JSON.stringify(result));
+    io.writeOut(JSON.stringify(toPublicQueryResult(result)));
     return 0;
   }
   io.writeOut(`Encontrado: ${String(result.data.found)}`);
@@ -207,7 +208,7 @@ async function validateVoucher(
   const result = await services.validateVoucher(profileId, voucher);
 
   if (parsed.values.json) {
-    io.writeOut(JSON.stringify(result));
+    io.writeOut(JSON.stringify(toPublicQueryResult(result)));
   } else {
     io.writeOut(`Estado: ${result.data.status}`);
     io.writeOut(

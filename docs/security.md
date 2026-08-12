@@ -71,7 +71,8 @@ Una acción no puede rebajar su clase mediante configuración del modelo o un pa
 
 - keychain del sistema para instalaciones locales;
 - secret manager administrado para despliegues remotos;
-- variables de entorno solo en CI/entornos efímeros controlados, nunca como recomendación principal;
+- variables de entorno en CI y desarrollo local controlado; `.env.local` es admisible para el
+  quickstart read-only si está ignorado por Git y usa permisos restrictivos;
 - referencias como `profile_id` que el servidor resuelve después de autorizar.
 
 ### Prohibido
@@ -124,6 +125,11 @@ La clave de idempotencia local incluye acción, emisor, identificador de documen
 La implementación actual fija cada perfil a `cpe-validation-read-only`. La política de endpoints sólo permite autenticación OAuth y Consulta Integrada CPE; las rutas de SUNAT Factura, SUNAT Beta y rutas API distintas de `validarcomprobante` se rechazan antes del transporte. `perfil-verificar` autentica, descarta el token y no consulta información tributaria.
 
 Una prueba real requiere una aplicación API dedicada, autorización del titular del RUC y un CPE conocido de la empresa. El procedimiento completo está en [Pruebas reales de solo lectura](live-readonly-testing.md).
+
+Secret Service es el mecanismo local recomendado, no un requisito impuesto por SUNAT. El perfil
+`environment` permite que un proceso CLI/MCP local reciba `SUNAT_CLIENT_ID` y `SUNAT_CLIENT_SECRET`
+desde su entorno. En ambos casos los secretos permanecen fuera de los argumentos, schemas, respuestas
+y logs. Un despliegue remoto sí requiere un secret manager administrado.
 
 ## 10. Archivos y parsers
 

@@ -9,6 +9,7 @@
     "noEmit": true,
     "types": ["node"],
     "paths": {
+      "@nyro-sunat/contracts": ["./packages/contracts/src/index.ts"],
       "@nyro-sunat/core": ["./packages/core/src/index.ts"],
       "@nyro-sunat/providers": ["./packages/providers/src/index.ts"],
       "@nyro-sunat/security": ["./packages/security/src/index.ts"],

@@ -45,7 +45,7 @@ Issues relevantes:
 - [NYR-233](https://linear.app/nyro/issue/NYR-233/consultar-ruc-chain-de-proveedores-y-fallback): RUC/proveedores;
 - [NYR-234](https://linear.app/nyro/issue/NYR-234/dni-reniec-decision-legal-y-de-producto): decisión DNI;
 - [NYR-235](https://linear.app/nyro/issue/NYR-235/mcp-server-v01-tools-read-only): MCP read-only;
-- [NYR-236](https://linear.app/nyro/issue/NYR-236/sire-consultar-obligacion-y-periodos-read-only): SIRE read-only.
+- [NYR-236](https://linear.app/nyro/issue/NYR-236/verificar-en-que-grupo-del-cronograma-sire-esta-nyro): verificación operativa del cronograma SIRE de Nyro.
 
 ## 2. Fuentes oficiales vigentes
 
@@ -65,7 +65,7 @@ Conclusión: “XML válido UBL” no equivale a “comprobante aceptable por SU
 
 ### MCP
 
-La revisión final [MCP 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28/) cambió supuestos anteriores: el núcleo del protocolo es stateless por solicitud, las tareas duraderas pasaron a una extensión y varios mecanismos anteriores quedaron obsoletos. El [transporte Streamable HTTP vigente](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/main/docs/specification/2026-07-28/basic/transports/streamable-http.mdx) usa solicitudes HTTP independientes.
+El [release candidate MCP 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/) propone un núcleo stateless por solicitud, extensiones y cambios de compatibilidad. Hasta que alcance estado final, la implementación local fijará el protocolo estable `2025-11-25` y una versión exacta del SDK. Los contratos públicos ya usan JSON Schema 2020-12, `outputSchema` y `structuredContent`, compatibles con la línea estable y el candidato.
 
 El [SDK oficial TypeScript](https://github.com/modelcontextprotocol/typescript-sdk) permite servidores Node y adaptadores web, pero su transición de versiones exige fijar dependencias. Su [guía de versiones de protocolo](https://github.com/modelcontextprotocol/typescript-sdk/blob/main/docs/protocol-versions.md) muestra que puede ser necesario atender clientes modernos y heredados de forma explícita.
 

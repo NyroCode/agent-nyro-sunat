@@ -54,7 +54,7 @@ Objetivo: entregar valor real sin riesgo fiscal de escritura.
 - casos de uso y puertos para RUC, validación CPE, padrón y tipo de cambio;
 - exactitud decimal y normalización de errores;
 - timeouts, cancelación y presupuestos de reintento solo para lecturas seguras;
-- resultados deterministas con `request_id` y warnings.
+- resultados deterministas con `requestId`, `schemaVersion` y warnings.
 
 ### 1B. Adaptadores
 
@@ -194,7 +194,8 @@ Objetivo: soportar libros electrónicos con separación estricta entre consulta,
 - tareas persistidas y reconciliación;
 - límites de tamaño y procesamiento seguro de archivos.
 
-Issue de origen: [NYR-236](https://linear.app/nyro/issue/NYR-236/sire-consultar-obligacion-y-periodos-read-only).
+La implementación SIRE read-only requiere una issue propia cuando se acerque esta fase. NYR-236
+registra la verificación operativa del grupo/cronograma SIRE de Nyro, no la implementación del adapter.
 
 Criterios de salida:
 

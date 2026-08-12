@@ -82,6 +82,7 @@ describe("CLI local", () => {
       currency: "PEN",
     });
     expect(JSON.parse(output.stdout[0] ?? "{}")).toMatchObject({
+      schemaVersion: "1",
       data: { status: "valid" },
       requestId: "cli-test-1",
     });
@@ -220,6 +221,7 @@ describe("CLI local", () => {
       credentialSource: "environment",
     });
     expect(JSON.parse(output.stdout[0] ?? "{}")).toMatchObject({
+      schemaVersion: "1",
       data: { found: true },
       requestId: "ruc-test-1",
     });

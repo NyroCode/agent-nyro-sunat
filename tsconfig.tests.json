@@ -10,6 +10,7 @@
     "types": ["node"],
     "paths": {
       "@nyro-sunat/core": ["./packages/core/src/index.ts"],
+      "@nyro-sunat/providers": ["./packages/providers/src/index.ts"],
       "@nyro-sunat/security": ["./packages/security/src/index.ts"],
       "@nyro-sunat/sunat": ["./packages/sunat/src/index.ts"],
       "@nyro-sunat/testing": ["./packages/testing/src/index.ts"]

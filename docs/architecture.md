@@ -1,6 +1,6 @@
 # Arquitectura objetivo
 
-Estado: **línea base propuesta para implementación**. Las decisiones irreversibles se confirmarán mediante los ADR y los spikes de la fase 0.
+Estado: **línea base aceptada y en implementación**. Los detalles de motores fiscales y despliegue remoto siguen sujetos a sus ADR y spikes específicos.
 
 ## 1. Decisión resumida
 

@@ -2,6 +2,10 @@ import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import {
   AuthenticationError,
+  FallbackTaxpayerLookup,
+  LookupTaxpayerUseCase,
+  ProviderUnavailableError,
+  RateLimitError,
   ValidateVoucherUseCase,
   createIsoInstant,
   createRequestId,
@@ -9,19 +13,31 @@ import {
   type QueryContext,
   type QueryResult,
   type RequestId,
+  type TaxpayerLookupData,
   type ValidateVoucherCommand,
   type VoucherValidationData,
 } from "@nyro-sunat/core";
 import {
   EnvironmentSunatCredentialProvider,
+  EnvironmentApiTokenProvider,
   JsonProfileRepository,
   SecretServiceSunatCredentialProvider,
+  SecretServiceApiTokenProvider,
   createProfile,
   defaultProfilePath,
   type CredentialSource,
   type ProfileCapability,
   type SunatProfile,
 } from "@nyro-sunat/security";
+import {
+  ApiPeruTaxpayerAdapter,
+  DecolectaTaxpayerAdapter,
+  LocalRucRegistryAdapter,
+  RucRegistryUpdater,
+  defaultRucRegistryPath,
+  type ApiTokenProvider,
+  type RucRegistryUpdateResult,
+} from "@nyro-sunat/providers";
 import {
   FetchHttpTransport,
   SunatOAuthTokenProvider,
@@ -32,6 +48,13 @@ import {
 } from "@nyro-sunat/sunat";
 
 export type VoucherCommandWithoutRequestId = Omit<ValidateVoucherCommand, "requestId">;
+export type RucLookupProvider = "auto" | "apiperu" | "decolecta" | "local";
+
+export interface TaxpayerLookupConfiguration {
+  readonly ruc: string;
+  readonly provider: RucLookupProvider;
+  readonly credentialSource: CredentialSource;
+}
 
 export interface ProfileConfiguration {
   readonly profileId: string;
@@ -42,6 +65,10 @@ export interface ProfileConfiguration {
 export interface CliServices {
   configureProfile(configuration: ProfileConfiguration): Promise<string>;
   verifyProfile(profileId: string): Promise<ProfileVerification>;
+  lookupTaxpayer(
+    configuration: TaxpayerLookupConfiguration,
+  ): Promise<QueryResult<TaxpayerLookupData>>;
+  updateRucRegistry(): Promise<RucRegistryUpdateResult>;
   validateVoucher(
     profileId: string,
     command: VoucherCommandWithoutRequestId,
@@ -67,14 +94,15 @@ export class LocalCliServices implements CliServices {
   readonly #profiles: JsonProfileRepository;
   readonly #environment: Readonly<Record<string, string | undefined>>;
   readonly #platform: NodeJS.Platform;
+  readonly #rucRegistryPath: string;
 
   public constructor(options: LocalCliServicesOptions = {}) {
     this.#environment = options.environment ?? process.env;
     this.#platform = options.platform ?? process.platform;
-    const profilePath =
-      options.profilePath ??
-      defaultProfilePath(options.homeDirectory ?? homedir(), this.#environment);
+    const homeDirectory = options.homeDirectory ?? homedir();
+    const profilePath = options.profilePath ?? defaultProfilePath(homeDirectory, this.#environment);
     this.#profiles = new JsonProfileRepository(profilePath);
+    this.#rucRegistryPath = defaultRucRegistryPath(homeDirectory, this.#environment);
   }
 
   public async configureProfile(configuration: ProfileConfiguration): Promise<string> {
@@ -124,6 +152,61 @@ export class LocalCliServices implements CliServices {
     });
   }
 
+  public async lookupTaxpayer(
+    configuration: TaxpayerLookupConfiguration,
+  ): Promise<QueryResult<TaxpayerLookupData>> {
+    const local = new LocalRucRegistryAdapter({ databasePath: this.#rucRegistryPath });
+    const adapter =
+      configuration.provider === "local"
+        ? local
+        : configuration.provider === "apiperu"
+          ? new ApiPeruTaxpayerAdapter({
+              tokenProvider: this.#createApiTokenProvider(
+                "apiperu",
+                configuration.credentialSource,
+              ),
+            })
+          : configuration.provider === "decolecta"
+            ? new DecolectaTaxpayerAdapter({
+                tokenProvider: this.#createApiTokenProvider(
+                  "decolecta",
+                  configuration.credentialSource,
+                ),
+              })
+            : new FallbackTaxpayerLookup(
+                [
+                  new ApiPeruTaxpayerAdapter({
+                    tokenProvider: this.#createApiTokenProvider(
+                      "apiperu",
+                      configuration.credentialSource,
+                    ),
+                  }),
+                  new DecolectaTaxpayerAdapter({
+                    tokenProvider: this.#createApiTokenProvider(
+                      "decolecta",
+                      configuration.credentialSource,
+                    ),
+                  }),
+                  local,
+                ],
+                {
+                  shouldFallback: (error) =>
+                    error instanceof AuthenticationError ||
+                    error instanceof ProviderUnavailableError ||
+                    error instanceof RateLimitError,
+                },
+              );
+
+    return new LookupTaxpayerUseCase(adapter).execute({
+      requestId: randomUUID(),
+      ruc: configuration.ruc,
+    });
+  }
+
+  public async updateRucRegistry(): Promise<RucRegistryUpdateResult> {
+    return new RucRegistryUpdater().update(this.#rucRegistryPath);
+  }
+
   #createTokenProvider(profile: SunatProfile, http: HttpTransport): SunatAccessTokenProvider {
     return new SunatOAuthTokenProvider(this.#createCredentialProvider(profile), http);
   }
@@ -142,5 +225,20 @@ export class LocalCliServices implements CliServices {
     }
 
     return new SecretServiceSunatCredentialProvider(profileId);
+  }
+
+  #createApiTokenProvider(
+    provider: "apiperu" | "decolecta",
+    credentialSource: CredentialSource,
+  ): ApiTokenProvider {
+    if (credentialSource === "environment") {
+      return new EnvironmentApiTokenProvider(provider, this.#environment);
+    }
+    if (this.#platform !== "linux") {
+      throw new AuthenticationError(
+        "Secret Service está soportado inicialmente en Linux; use variables de entorno en desarrollo.",
+      );
+    }
+    return new SecretServiceApiTokenProvider(provider);
   }
 }

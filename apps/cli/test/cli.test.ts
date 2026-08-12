@@ -4,7 +4,9 @@ import {
   ExternalServiceError,
   createIsoInstant,
   createRequestId,
+  createRuc,
   type QueryResult,
+  type TaxpayerLookupData,
   type VoucherValidationData,
 } from "../../../packages/core/src/index.js";
 import { runCli, type CliIo } from "../src/cli.js";
@@ -191,6 +193,64 @@ describe("CLI local", () => {
       },
     });
   });
+
+  it("consulta RUC con proveedor y credenciales explícitos", async () => {
+    const lookupTaxpayer = vi.fn(async () => syntheticTaxpayerResult());
+    const output = captureOutput();
+
+    const code = await runCli(
+      [
+        "consultar-ruc",
+        "--ruc",
+        "20000000000",
+        "--provider",
+        "apiperu",
+        "--credenciales",
+        "environment",
+        "--json",
+      ],
+      createServices({ lookupTaxpayer }),
+      output.io,
+    );
+
+    expect(code).toBe(0);
+    expect(lookupTaxpayer).toHaveBeenCalledWith({
+      ruc: "20000000000",
+      provider: "apiperu",
+      credentialSource: "environment",
+    });
+    expect(JSON.parse(output.stdout[0] ?? "{}")).toMatchObject({
+      data: { found: true },
+      requestId: "ruc-test-1",
+    });
+  });
+
+  it("actualiza el padrón sin recibir secretos", async () => {
+    const updateRucRegistry = vi.fn(async () => ({
+      databasePath: "/tmp/synthetic/padron.sqlite",
+      datasetVersion: "2026-08-08",
+      rowCount: 1,
+      skippedRowCount: 0,
+      archiveSha256: "a".repeat(64),
+      sourcePage: "https://www.sunat.gob.pe/synthetic",
+      archiveUrl: "https://www2.sunat.gob.pe/synthetic.zip",
+    }));
+    const output = captureOutput();
+
+    const code = await runCli(
+      ["padron-ruc-actualizar", "--json"],
+      createServices({ updateRucRegistry }),
+      output.io,
+    );
+
+    expect(code).toBe(0);
+    expect(updateRucRegistry).toHaveBeenCalledOnce();
+    expect(JSON.parse(output.stdout[0] ?? "{}")).toMatchObject({
+      datasetVersion: "2026-08-08",
+      rowCount: 1,
+      skippedRowCount: 0,
+    });
+  });
 });
 
 function validVoucherArguments(): string[] {
@@ -227,7 +287,38 @@ function createServices(overrides: Partial<CliServices> = {}): CliServices {
       requestId: createRequestId("verify-test-default"),
     }),
     validateVoucher: async () => syntheticResult(),
+    lookupTaxpayer: async () => syntheticTaxpayerResult(),
+    updateRucRegistry: async () => ({
+      databasePath: "/tmp/synthetic/padron.sqlite",
+      datasetVersion: "2026-08-08",
+      rowCount: 1,
+      skippedRowCount: 0,
+      archiveSha256: "a".repeat(64),
+      sourcePage: "https://www.sunat.gob.pe/synthetic",
+      archiveUrl: "https://www2.sunat.gob.pe/synthetic.zip",
+    }),
     ...overrides,
+  };
+}
+
+function syntheticTaxpayerResult(): QueryResult<TaxpayerLookupData> {
+  return {
+    data: {
+      found: true,
+      taxpayer: {
+        ruc: createRuc("20000000000"),
+        legalName: "EMPRESA SINTETICA SAC",
+        status: "active",
+        condition: "habido",
+      },
+    },
+    provenance: {
+      source: "synthetic-ruc",
+      fetchedAt: createIsoInstant("2026-08-08T12:00:00.000Z"),
+      isOfficial: false,
+    },
+    requestId: createRequestId("ruc-test-1"),
+    warnings: [],
   };
 }
 

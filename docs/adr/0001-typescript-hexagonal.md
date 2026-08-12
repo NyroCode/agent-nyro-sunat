@@ -1,6 +1,6 @@
 # ADR-0001: TypeScript y arquitectura hexagonal
 
-- Estado: Proposed
+- Estado: Accepted
 - Fecha: 2026-08-08
 - Relacionado: [NYR-228](https://linear.app/nyro/issue/NYR-228/decidir-lenguaje-y-estrategia-reutilizacion-vs-desde-cero)
 
@@ -8,7 +8,7 @@
 
 El agente necesita CLI, MCP local/remoto, consultas REST, servicios SOAP, XML/UBL, firma, archivos y tareas asíncronas. Existe trabajo previo TypeScript y una alternativa PHP madura, pero ninguna debe definir el dominio ni el modelo de seguridad.
 
-## Decisión propuesta
+## Decisión
 
 Usar TypeScript estricto/ESM sobre Node.js 24 LTS y pnpm workspaces para la orquestación. Organizar el sistema con arquitectura hexagonal: dominio y casos de uso puros, puertos explícitos y adaptadores para SUNAT, proveedores, motores documentales, secretos, aprobación, tareas y almacenamiento.
 
@@ -30,9 +30,9 @@ Costos:
 - el ecosistema Node para firma/XML debe comprobarse con fixtures reales de beta;
 - la versión MCP/SDK deberá fijarse y mantenerse conscientemente.
 
-## Condiciones para aceptar
+## Trabajo posterior no bloqueante
 
 - spike ejecutable de los motores candidatos;
 - librería decimal y stack XML/firma seleccionados con pruebas;
-- build mínimo CLI + MCP `stdio` en Node 24;
+- completar MCP `stdio` sobre los mismos casos de uso ya expuestos por CLI;
 - confirmación de licencia/distribución de cada dependencia y esquema.

@@ -5,6 +5,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@nyro-sunat/core": fileURLToPath(new URL("./packages/core/src/index.ts", import.meta.url)),
+      "@nyro-sunat/providers": fileURLToPath(
+        new URL("./packages/providers/src/index.ts", import.meta.url),
+      ),
       "@nyro-sunat/security": fileURLToPath(
         new URL("./packages/security/src/index.ts", import.meta.url),
       ),

@@ -33,9 +33,9 @@ Los documentos locales de `nyro-hq` añaden que el repositorio es la fuente de v
 
 ### Estado en Linear
 
-El proyecto [Agent Nyro SUNAT (Open Source)](https://linear.app/nyro/project/agent-nyro-sunat-open-source-9d1836ad68a9) estaba planificado, pero sus issues seguían en backlog al momento de esta revisión. No había evidencia de desarrollo iniciado en este repositorio.
+El proyecto [Agent Nyro SUNAT (Open Source)](https://linear.app/nyro/project/agent-nyro-sunat-open-source-9d1836ad68a9) está en desarrollo. Las decisiones de lenguaje, repositorio público, core, validación CPE y exclusión de DNI ya fueron cerradas; la consulta RUC multi-proveedor corresponde a NYR-233.
 
-Backlog relevante:
+Issues relevantes:
 
 - [NYR-228](https://linear.app/nyro/issue/NYR-228/decidir-lenguaje-y-estrategia-reutilizacion-vs-desde-cero): lenguaje y reutilización;
 - [NYR-229](https://linear.app/nyro/issue/NYR-229/credenciales-apis-y-accesos-para-desarrollo-y-beta): accesos y beta;
@@ -57,7 +57,8 @@ Backlog relevante:
 - Los [comunicados CPE](https://cpe.sunat.gob.pe/comunicados) publican cambios operativos y el endpoint productivo; deben monitorearse antes de releases con escritura.
 - SUNAT documenta los [sistemas de emisión de GRE](https://cpe.sunat.gob.pe/node/116), incluyendo validaciones y la necesidad operativa de contar con una guía aceptada.
 - La página oficial de [acceso y formularios SIRE](https://cpe.sunat.gob.pe/node/158) describe credenciales, descarga, aceptación/reemplazo, registro y tickets; la [orientación general SIRE](https://orientacion.sunat.gob.pe/05-registros-electronicos-sire) aporta el contexto del sistema.
-- La descarga oficial del [Padrón Reducido del RUC](https://www.sunat.gob.pe/descargaPRR/mrc137_padron_reducido.html) mostraba actualización al 29/07/2026 en la revisión del 08/08/2026. Sigue sin publicarse un SLA de actualización, por lo que el adapter debe exponer siempre la fecha/version del dataset y no presentarlo como consulta en vivo.
+- La descarga oficial del [Padrón Reducido del RUC](https://www.sunat.gob.pe/descargaPRR/mrc137_padron_reducido.html) mostraba actualización al 08/08/2026 en la revisión del mismo día. Sigue sin publicarse un SLA de actualización, por lo que el adapter expone siempre la fecha/versión del dataset y no lo presenta como consulta en vivo.
+- [API Perú](https://docs.apiperu.dev/referencia/consultar-ruc) documenta `POST https://api.apiperu.dev/ruc` con Bearer token y [Decolecta](https://decolecta.gitbook.io/docs/servicios/integrations) documenta `GET https://api.decolecta.com/v1/sunat/ruc`. Ambos se tratan como proveedores privados, nunca como respuestas oficiales de SUNAT.
 - [UBL 2.1 de OASIS](https://docs.oasis-open.org/ubl/prd4-UBL-2.1/UBL-2.1.html) es la base estándar, pero las reglas y personalizaciones de SUNAT siguen siendo obligatorias.
 
 Conclusión: “XML válido UBL” no equivale a “comprobante aceptable por SUNAT”. El producto necesita validación en capas: esquema, reglas SUNAT versionadas, firma/ZIP, beta y CDR.

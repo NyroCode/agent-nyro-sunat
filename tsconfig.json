@@ -12,6 +12,7 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/testing" },
+    { "path": "./packages/providers" },
     { "path": "./packages/sunat" },
     { "path": "./packages/security" },
     { "path": "./apps/cli" }
